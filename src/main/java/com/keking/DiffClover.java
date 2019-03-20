@@ -18,10 +18,12 @@ public class DiffClover {
     public static void main(String[] args) {
 
         // step1:获取必要的配置信息
-        String gitUrl, newVersion, oldVersion, diffFolder, jacocoReport = "";
+        String gitUrl, gitUsername, gitPassword, newVersion, oldVersion, diffFolder, jacocoReport = "";
 
         try {
             gitUrl = System.getProperty("GitURI").trim();
+            gitUsername = System.getProperty("GitUsername") == null ? null : System.getProperty("GitUsername").trim();
+            gitPassword = System.getProperty("GitPassword") == null ? null : System.getProperty("GitPassword").trim();
             diffFolder = System.getProperty("DiffFolder").trim();
             newVersion = System.getProperty("NewVersion").trim();
             oldVersion = System.getProperty("OldVersion").trim();
@@ -43,9 +45,9 @@ public class DiffClover {
             // step2:获取最新的源代码
             List<File> fileList = (List<File>) FileUtils.listFiles(new File(diffFolder), null, true);
             if (fileList.size() < 10) {
-                JGitUtil.cloneGit(gitUrl, diffFolder);
+                JGitUtil.cloneGit(gitUrl, diffFolder, gitUsername, gitPassword);
             } else {
-                JGitUtil.pullGit(diffFolder);
+                JGitUtil.pullGit(diffFolder, gitUsername, gitPassword);
             }
             // step3:针对传入分支比较
             List<ClassDiffEntity> diffs = JGitUtil.diffBranch(diffFolder, newVersion, oldVersion);
