@@ -12,5 +12,5 @@ prepare the jacoco code coverage report
 config the necessary params and create tmp folder
 #### step4:
 run command: 
-java -DGitURI=git@xxx/xxx.git -DNewVersion=refs/remotes/origin/daily -DOldVersion=refs/heads/master -DDiffFolder=/home/it/tmp/ 
+java -DGitURI=git@xxx/xxx.git -DGitUsername=xxx -DGitPassword=xxx  -DNewVersion=refs/remotes/origin/daily -DOldVersion=refs/heads/master -DDiffFolder=/home/it/tmp/ 
  -DJacocoReport=/home/it/codeCoverage/Check_Order_related/ -jar jacoco-gitdiff-0.0.1-release.jar

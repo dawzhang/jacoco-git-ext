@@ -12,8 +12,10 @@ import java.util.regex.Pattern;
 
 import com.jcraft.jsch.Session;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
+import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.RawText;
@@ -26,6 +28,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.SshSessionFactory;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.util.StringUtils;
@@ -56,12 +59,16 @@ public class JGitUtil {
      * @param tmpPath
      * @throws Exception
      */
-    public static void cloneGit(String remoteURI, String tmpPath) throws Exception {
+    public static void cloneGit(String remoteURI, String tmpPath, String gitUsername, String gitPassword) throws Exception {
         File localPath = new File(tmpPath);
         if (localPath.exists()) {
             FileUtils.deleteDirectory(localPath);
         }
-        try (Git git = Git.cloneRepository().setURI(remoteURI).setCloneAllBranches(true).setDirectory(localPath).call()) {
+        CloneCommand gitCommand = Git.cloneRepository().setURI(remoteURI).setCloneAllBranches(true).setDirectory(localPath);
+        if (gitUsername != null && gitPassword != null) {
+            gitCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(gitUsername, gitPassword));
+        }
+        try (Git git = gitCommand.call()) {
             for (Ref b : git.branchList().setListMode(ListMode.ALL).call())
                 logger.debug("cloned branch:" + b.getName());
         }
@@ -73,9 +80,17 @@ public class JGitUtil {
      * @param tmpPath
      * @throws Exception
      */
-    public static void pullGit(String tmpPath) throws Exception {
+    public static void pullGit(String tmpPath, String gitUsername, String gitPassword) throws Exception {
+        UsernamePasswordCredentialsProvider credential = null;
+        if (gitUsername != null && gitPassword != null) {
+            credential = new UsernamePasswordCredentialsProvider(gitUsername, gitPassword);
+        }
         try (Git git = Git.open(new File(tmpPath))) {
-            git.pull().call();
+            PullCommand pullCommand = git.pull();
+            if (credential != null) {
+                pullCommand.setCredentialsProvider(credential);
+            }
+            pullCommand.call();
         }
     }
 
